@@ -1,0 +1,17 @@
+/* RESET */
+
+@import "tailwindcss";
+
+
+html,
+body,
+#root {
+    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* CONTENEDOR PRINCIPAL */
+
+
+
+/* CONTENIDO */
