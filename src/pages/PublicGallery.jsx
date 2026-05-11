@@ -65,7 +65,7 @@ function EditModal({ img, categories, onClose, onSaved }) {
         try {
             let url = img.url;
 
-            // Si eligió nueva foto, subirla
+            // Si eligió nueva foto, subirla y eliminar la anterior
             if (newFile) {
                 const processed = await processImage(newFile);
                 const fileName = Date.now() + "_" + newFile.name;
@@ -73,6 +73,14 @@ function EditModal({ img, categories, onClose, onSaved }) {
                 if (upErr) throw upErr;
                 const { data } = supabase.storage.from("images").getPublicUrl(fileName);
                 url = data.publicUrl;
+
+                // Eliminar foto anterior del storage
+                try {
+                    const oldPath = decodeURIComponent(img.url.split("/storage/v1/object/public/images/")[1]);
+                    await supabase.storage.from("images").remove([oldPath]);
+                } catch (_) {
+                    // Si falla el delete no bloqueamos el flujo
+                }
             }
 
             const { error } = await supabase.from("images").update({

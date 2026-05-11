@@ -4,7 +4,7 @@ export const processImage = async (file) => {
 
     const img = await loadImage(URL.createObjectURL(file));
 
-    const MAX_WIDTH = 1600;
+    const MAX_WIDTH = 1200;
 
     let width = img.width;
     let height = img.height;
@@ -74,7 +74,7 @@ function canvasToFile(canvas, name) {
                 }));
             },
             "image/jpeg",
-            0.9
+            0.75
         );
     });
 }
