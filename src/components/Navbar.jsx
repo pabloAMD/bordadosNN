@@ -1,65 +1,82 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "../styles/navbar.css";
 import React, { useState } from "react";
 
 export default function Navbar() {
-
     const [menuOpen, setMenuOpen] = useState(false);
+    const location = useLocation();
+
+    const isActive = (path) => location.pathname === path;
+
+    const links = [
+        { to: "/", label: "Inicio" },
+        { to: "/contact", label: "Contacto" },
+        { to: "/admin", label: "Admin" },
+    ];
 
     return (
         <>
             <nav className="navbar">
-
                 <div className="navbar-logo">
-                    <img className="max-h-16 py-0" src="/logomenu.png" alt="Logo" />
+                    <img className="max-h-14 py-0" src="/logomenu.png" alt="Logo" />
                 </div>
 
                 {/* LINKS DESKTOP */}
                 <div className="navbar-links desktop">
-                    <Link to="/">Inicio</Link>
-                    <Link to="/contact">Contacto</Link>
-                    <Link to="/admin">Admin</Link>
+                    {links.map(({ to, label }) => (
+                        <Link
+                            key={to}
+                            to={to}
+                            className={isActive(to) ? "nav-link-active" : ""}
+                        >
+                            {label}
+                        </Link>
+                    ))}
                 </div>
 
                 {/* HAMBURGUESA MOBILE */}
-                <div
+                <button
                     className="hamburger"
                     onClick={() => setMenuOpen(true)}
+                    aria-label="Abrir menú"
                 >
-                    ☰
-                </div>
-
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </nav>
 
             {/* OVERLAY */}
             <div
                 className={`menu-overlay ${menuOpen ? "show" : ""}`}
                 onClick={() => setMenuOpen(false)}
-            ></div>
+            />
 
             {/* ASIDE MENU */}
             <aside className={`side-menu ${menuOpen ? "open" : ""}`}>
-
                 <div className="side-header">
-                    <span>Menú</span>
-
-                    <button onClick={() => setMenuOpen(false)}>
+                    <img src="/logomenu.png" alt="Logo" className="h-10" />
+                    <button
+                        onClick={() => setMenuOpen(false)}
+                        className="side-close-btn"
+                        aria-label="Cerrar menú"
+                    >
                         ✕
                     </button>
                 </div>
 
-                <Link to="/" onClick={() => setMenuOpen(false)}>
-                    Inicio
-                </Link>
-
-                <Link to="/contact" onClick={() => setMenuOpen(false)}>
-                    Contacto
-                </Link>
-
-                <Link to="/admin" onClick={() => setMenuOpen(false)}>
-                    Admin
-                </Link>
-
+                <nav className="side-nav">
+                    {links.map(({ to, label }) => (
+                        <Link
+                            key={to}
+                            to={to}
+                            className={`side-link ${isActive(to) ? "side-link-active" : ""}`}
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            {label}
+                        </Link>
+                    ))}
+                </nav>
             </aside>
         </>
     );
