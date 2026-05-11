@@ -1,1 +1,18 @@
-@tailwind utilities;
+@import "tailwindcss";
+@source "./";
+
+html,
+body,
+#root {
+    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Ocultar scrollbar manteniendo scroll funcional */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}

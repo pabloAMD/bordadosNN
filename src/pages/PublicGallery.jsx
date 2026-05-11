@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "../supaConfig/supabaseClient";
 import { processImage } from "../utils/imageProcessor";
 
-// Rangos de alto disponibles para filtrar
 const ALTO_RANGOS = [
     { label: "Hasta 5 cm", min: 0, max: 5 },
     { label: "5 – 10 cm", min: 5, max: 10 },
@@ -11,24 +10,67 @@ const ALTO_RANGOS = [
     { label: "Más de 20 cm", min: 20, max: null },
 ];
 
+function SidebarBtn({ active, onClick, children }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer border-none ${active ? "bg-[#0f3460] text-white" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+        >
+            {children}
+        </button>
+    );
+}
+
+function PillBtn({ active, secondary, onClick, children }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors cursor-pointer whitespace-nowrap ${active
+                ? secondary
+                    ? "bg-slate-700 text-white border-slate-700"
+                    : "bg-[#0f3460] text-white border-[#0f3460]"
+                : "bg-white text-slate-500 border-slate-200"
+                }`}
+        >
+            {children}
+        </button>
+    );
+}
+
 function Sidebar({ categories, selectedCategory, onSelect, selectedAlto, onSelectAlto }) {
     return (
-        <aside style={{ width: "200px", flexShrink: 0, position: "sticky", top: "72px", alignSelf: "flex-start", display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={{ background: "white", borderRadius: "16px", border: "1px solid #f1f5f9", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", padding: "16px" }}>
-                <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", marginBottom: "12px", paddingLeft: "4px" }}>Categorías</p>
-                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <li><button onClick={() => onSelect(null)} style={btnStyle(!selectedCategory)}>Todas</button></li>
+        <aside className="hidden md:flex flex-col gap-3 w-52 flex-shrink-0 sticky top-[68px] self-start">
+            {/* Categorías */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3 pl-1">
+                    Categorías
+                </p>
+                <ul className="flex flex-col gap-0.5 list-none p-0 m-0">
+                    <li><SidebarBtn active={!selectedCategory} onClick={() => onSelect(null)}>Todas</SidebarBtn></li>
                     {categories.map((cat) => (
-                        <li key={cat.id}><button onClick={() => onSelect(cat.id)} style={btnStyle(selectedCategory === cat.id)}>{cat.name}</button></li>
+                        <li key={cat.id}>
+                            <SidebarBtn active={selectedCategory === cat.id} onClick={() => onSelect(cat.id)}>
+                                {cat.name}
+                            </SidebarBtn>
+                        </li>
                     ))}
                 </ul>
             </div>
-            <div style={{ background: "white", borderRadius: "16px", border: "1px solid #f1f5f9", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", padding: "16px" }}>
-                <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", marginBottom: "12px", paddingLeft: "4px" }}>Alto (cm)</p>
-                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <li><button onClick={() => onSelectAlto(null)} style={btnStyle(!selectedAlto)}>Todos</button></li>
+
+            {/* Alto */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3 pl-1">
+                    Alto (cm)
+                </p>
+                <ul className="flex flex-col gap-0.5 list-none p-0 m-0">
+                    <li><SidebarBtn active={!selectedAlto} onClick={() => onSelectAlto(null)}>Todos</SidebarBtn></li>
                     {ALTO_RANGOS.map((rango) => (
-                        <li key={rango.label}><button onClick={() => onSelectAlto(rango)} style={btnStyle(selectedAlto?.label === rango.label)}>{rango.label}</button></li>
+                        <li key={rango.label}>
+                            <SidebarBtn active={selectedAlto?.label === rango.label} onClick={() => onSelectAlto(rango)}>
+                                {rango.label}
+                            </SidebarBtn>
+                        </li>
                     ))}
                 </ul>
             </div>
@@ -36,15 +78,6 @@ function Sidebar({ categories, selectedCategory, onSelect, selectedAlto, onSelec
     );
 }
 
-function btnStyle(active) {
-    return { width: "100%", textAlign: "left", padding: "8px 12px", borderRadius: "10px", border: "none", cursor: "pointer", fontSize: "14px", fontWeight: 500, background: active ? "#0f3460" : "transparent", color: active ? "white" : "#475569", transition: "background 0.15s" };
-}
-
-function pillStyle(active, secondary = false) {
-    return { flexShrink: 0, padding: "6px 14px", borderRadius: "999px", border: active ? "none" : "1px solid #e2e8f0", background: active ? (secondary ? "#334155" : "#0f3460") : "white", color: active ? "white" : "#475569", fontSize: "13px", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" };
-}
-
-// ── MODAL EDITAR ──
 function EditModal({ img, categories, onClose, onSaved }) {
     const [categoria, setCategoria] = useState(img.category_id || "");
     const [alto, setAlto] = useState(img.alto ?? "");
@@ -64,8 +97,6 @@ function EditModal({ img, categories, onClose, onSaved }) {
         setSaving(true);
         try {
             let url = img.url;
-
-            // Si eligió nueva foto, subirla y eliminar la anterior
             if (newFile) {
                 const processed = await processImage(newFile);
                 const fileName = Date.now() + "_" + newFile.name;
@@ -73,23 +104,17 @@ function EditModal({ img, categories, onClose, onSaved }) {
                 if (upErr) throw upErr;
                 const { data } = supabase.storage.from("images").getPublicUrl(fileName);
                 url = data.publicUrl;
-
-                // Eliminar foto anterior del storage
                 try {
                     const oldPath = decodeURIComponent(img.url.split("/storage/v1/object/public/images/")[1]);
                     await supabase.storage.from("images").remove([oldPath]);
-                } catch (_) {
-                    // Si falla el delete no bloqueamos el flujo
-                }
+                } catch (_) { }
             }
-
             const { error } = await supabase.from("images").update({
                 url,
                 category_id: categoria || null,
                 alto: alto !== "" ? parseFloat(alto) : null,
                 ancho: ancho !== "" ? parseFloat(ancho) : null,
             }).eq("id", img.id);
-
             if (error) throw error;
             onSaved();
         } catch (err) {
@@ -102,40 +127,37 @@ function EditModal({ img, categories, onClose, onSaved }) {
     return (
         <div
             onClick={onClose}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: "16px" }}
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4"
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                style={{ background: "white", borderRadius: "20px", width: "100%", maxWidth: "480px", overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}
+                className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
                 {/* Header */}
-                <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#1e293b" }}>Editar imagen</h3>
-                    <button onClick={onClose} style={{ background: "#f1f5f9", border: "none", borderRadius: "8px", width: "32px", height: "32px", cursor: "pointer", fontSize: "16px", color: "#64748b" }}>✕</button>
+                <div className="flex justify-between items-center px-5 py-4 border-b border-slate-100">
+                    <h3 className="text-base font-bold text-slate-800 m-0">Editar imagen</h3>
+                    <button onClick={onClose} className="bg-slate-100 hover:bg-slate-200 border-none rounded-lg w-8 h-8 cursor-pointer text-slate-500 text-base flex items-center justify-center transition-colors">✕</button>
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
-
+                <div className="p-5 flex flex-col gap-4">
                     {/* Preview + cambiar foto */}
-                    <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                        <img src={preview} alt="" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "12px", border: "1px solid #e2e8f0" }} />
-                        <label style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px", border: "2px dashed #e2e8f0", borderRadius: "12px", cursor: "pointer", gap: "4px" }}>
-                            <span style={{ fontSize: "13px", fontWeight: 600, color: "#475569" }}>
-                                {newFile ? newFile.name : "Cambiar foto"}
-                            </span>
-                            <span style={{ fontSize: "11px", color: "#94a3b8" }}>opcional</span>
-                            <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
+                    <div className="flex gap-3 items-center">
+                        <img src={preview} alt="" className="w-20 h-20 object-cover rounded-xl border border-slate-200 flex-shrink-0" />
+                        <label className="flex-1 flex flex-col items-center justify-center p-3 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl cursor-pointer gap-1 transition-colors">
+                            <span className="text-sm font-semibold text-slate-500">{newFile ? newFile.name : "Cambiar foto"}</span>
+                            <span className="text-xs text-slate-400">opcional</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
                         </label>
                     </div>
 
                     {/* Categoría */}
                     <div>
-                        <label style={{ display: "block", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", marginBottom: "6px" }}>Categoría</label>
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Categoría</label>
                         <select
                             value={categoria}
                             onChange={(e) => setCategoria(e.target.value)}
-                            style={{ width: "100%", padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: "10px", fontSize: "14px", outline: "none", background: "white" }}
+                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">Sin categoría</option>
                             {categories.map((cat) => (
@@ -146,42 +168,25 @@ function EditModal({ img, categories, onClose, onSaved }) {
 
                     {/* Dimensiones */}
                     <div>
-                        <label style={{ display: "block", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", marginBottom: "6px" }}>
-                            Dimensiones <span style={{ fontWeight: 400, textTransform: "none" }}>(cm, opcional)</span>
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+                            Dimensiones <span className="normal-case font-normal">(cm, opcional)</span>
                         </label>
-                        <div style={{ display: "flex", gap: "10px" }}>
-                            <input
-                                type="number"
-                                placeholder="Alto"
-                                min="0"
-                                step="0.1"
-                                value={alto}
-                                onChange={(e) => setAlto(e.target.value)}
-                                style={{ flex: 1, padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: "10px", fontSize: "14px", outline: "none" }}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Ancho"
-                                min="0"
-                                step="0.1"
-                                value={ancho}
-                                onChange={(e) => setAncho(e.target.value)}
-                                style={{ flex: 1, padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: "10px", fontSize: "14px", outline: "none" }}
-                            />
+                        <div className="flex gap-2">
+                            <input type="number" placeholder="Alto" min="0" step="0.1" value={alto} onChange={(e) => setAlto(e.target.value)}
+                                className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            <input type="number" placeholder="Ancho" min="0" step="0.1" value={ancho} onChange={(e) => setAncho(e.target.value)}
+                                className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div style={{ padding: "16px 20px", borderTop: "1px solid #f1f5f9", display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                    <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: "10px", border: "1px solid #e2e8f0", background: "white", fontSize: "14px", fontWeight: 600, cursor: "pointer", color: "#475569" }}>
+                <div className="flex gap-2 justify-end px-5 py-4 border-t border-slate-100">
+                    <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold cursor-pointer text-slate-500 hover:bg-slate-50 transition-colors">
                         Cancelar
                     </button>
-                    <button
-                        onClick={save}
-                        disabled={saving}
-                        style={{ padding: "10px 18px", borderRadius: "10px", border: "none", background: saving ? "#94a3b8" : "#0f3460", color: "white", fontSize: "14px", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer" }}
-                    >
+                    <button onClick={save} disabled={saving}
+                        className={`px-4 py-2.5 rounded-xl border-none text-white text-sm font-semibold transition-colors ${saving ? "bg-slate-400 cursor-not-allowed" : "bg-[#0f3460] hover:bg-[#1a4a7a] cursor-pointer"}`}>
                         {saving ? "Guardando..." : "Guardar"}
                     </button>
                 </div>
@@ -197,25 +202,13 @@ export default function PublicGallery() {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedAlto, setSelectedAlto] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [isAdmin, setIsAdmin] = useState(false);
     const [editingImg, setEditingImg] = useState(null);
     const touchStartX = useRef(null);
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    // Detectar sesión admin
-    useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            setIsAdmin(!!data.session);
-        });
-        const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
-            setIsAdmin(!!session);
-        });
+        supabase.auth.getSession().then(({ data }) => setIsAdmin(!!data.session));
+        const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => setIsAdmin(!!session));
         return () => listener.subscription.unsubscribe();
     }, []);
 
@@ -224,9 +217,7 @@ export default function PublicGallery() {
         loadCategories();
     }, []);
 
-    useEffect(() => {
-        fetchImages();
-    }, [selectedCategory, selectedAlto]);
+    useEffect(() => { fetchImages(); }, [selectedCategory, selectedAlto]);
 
     useEffect(() => {
         document.body.style.overflow = (selectedIndex !== null || editingImg !== null) ? "hidden" : "";
@@ -255,7 +246,6 @@ export default function PublicGallery() {
         e?.stopPropagation();
         setSelectedIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     };
-
     const prevImage = (e) => {
         e?.stopPropagation();
         setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -273,23 +263,21 @@ export default function PublicGallery() {
         ? categories.find((c) => c.id === selectedCategory)?.name
         : "Todas";
 
-    const gridStyle = {
-        display: "grid",
-        gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
-        gap: isMobile ? "8px" : "16px",
-    };
-
     return (
-        <div style={{ minHeight: "100vh", background: "#f8f7f4" }}>
+        /*
+         * Mobile: columna fija con scroll solo en la galería (h-dvh overflow-hidden)
+         * Desktop: layout normal con scroll de página
+         */
+        <div className="bg-[#f8f7f4] flex flex-col h-dvh overflow-hidden md:h-auto md:overflow-visible md:min-h-screen">
 
             {/* HERO */}
-            <div style={{ background: "linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)", color: "white" }}>
-                <div style={{ maxWidth: "1280px", margin: "0 auto", padding: isMobile ? "32px 16px" : "48px 32px" }}>
-                    <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#93c5fd", marginBottom: "8px" }}>Colección</p>
-                    <h1 style={{ fontSize: isMobile ? "28px" : "44px", fontWeight: 800, margin: "0 0 8px 0", lineHeight: 1.2 }}>Diseños de Bordados</h1>
-                    <p style={{ color: "#bfdbfe", fontSize: isMobile ? "13px" : "15px", maxWidth: "480px" }}>Bordados textiles personalizados, hechos con detalle y dedicación.</p>
+            <div className="bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] text-white flex-shrink-0">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-14">
+                    <p className="hidden md:block text-[11px] font-bold tracking-widest uppercase text-blue-300 mb-2">Colección</p>
+                    <h1 className="text-xl md:text-5xl font-extrabold leading-tight mb-0.5 md:mb-3">Diseños de Bordados</h1>
+                    <p className="hidden md:block text-blue-200 text-sm md:text-base max-w-lg">Bordados textiles personalizados, hechos con detalle y dedicación.</p>
                     {images.length > 0 && (
-                        <p style={{ marginTop: "12px", color: "#93c5fd", fontSize: "13px" }}>
+                        <p className="text-blue-300 text-xs mt-1 md:mt-4">
                             {images.length} diseño{images.length !== 1 ? "s" : ""} · {activeLabel}
                             {selectedAlto ? ` · ${selectedAlto.label}` : ""}
                         </p>
@@ -297,84 +285,75 @@ export default function PublicGallery() {
                 </div>
             </div>
 
-            {/* CONTENIDO */}
-            <div style={{ maxWidth: "1280px", margin: "0 auto", padding: isMobile ? "20px 12px" : "32px 32px" }}>
+            {/* FILTROS MOBILE — fijos, no scrollean */}
+            <div className="md:hidden flex-shrink-0 bg-[#f8f7f4] px-3 py-2.5 flex flex-col gap-2 border-b border-slate-200">
+                <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+                    <PillBtn active={!selectedCategory} onClick={() => setSelectedCategory(null)}>Todas</PillBtn>
+                    {categories.map((cat) => (
+                        <PillBtn key={cat.id} active={selectedCategory === cat.id} onClick={() => setSelectedCategory(cat.id)}>{cat.name}</PillBtn>
+                    ))}
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+                    <PillBtn active={!selectedAlto} secondary onClick={() => setSelectedAlto(null)}>Todos los altos</PillBtn>
+                    {ALTO_RANGOS.map((rango) => (
+                        <PillBtn key={rango.label} active={selectedAlto?.label === rango.label} secondary onClick={() => setSelectedAlto(rango)}>{rango.label}</PillBtn>
+                    ))}
+                </div>
+            </div>
 
-                {/* FILTROS MOBILE */}
-                {isMobile && (
-                    <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                        <div style={{ overflowX: "auto", display: "flex", gap: "8px", paddingBottom: "4px" }}>
-                            <button onClick={() => setSelectedCategory(null)} style={pillStyle(!selectedCategory)}>Todas</button>
-                            {categories.map((cat) => (
-                                <button key={cat.id} onClick={() => setSelectedCategory(cat.id)} style={pillStyle(selectedCategory === cat.id)}>{cat.name}</button>
-                            ))}
-                        </div>
-                        <div style={{ overflowX: "auto", display: "flex", gap: "8px", paddingBottom: "4px" }}>
-                            <button onClick={() => setSelectedAlto(null)} style={pillStyle(!selectedAlto, true)}>Todos los altos</button>
-                            {ALTO_RANGOS.map((rango) => (
-                                <button key={rango.label} onClick={() => setSelectedAlto(rango)} style={pillStyle(selectedAlto?.label === rango.label, true)}>{rango.label}</button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                <div style={{ display: "flex", gap: "24px" }}>
+            {/* CONTENIDO — solo esta sección scrollea en mobile */}
+            <div className="flex-1 overflow-y-auto md:overflow-visible max-w-7xl w-full mx-auto px-3 md:px-8 py-4 md:py-8">
+                <div className="flex gap-6">
 
                     {/* SIDEBAR desktop */}
-                    {!isMobile && (
-                        <Sidebar
-                            categories={categories}
-                            selectedCategory={selectedCategory}
-                            onSelect={setSelectedCategory}
-                            selectedAlto={selectedAlto}
-                            onSelectAlto={setSelectedAlto}
-                        />
-                    )}
+                    <Sidebar
+                        categories={categories}
+                        selectedCategory={selectedCategory}
+                        onSelect={setSelectedCategory}
+                        selectedAlto={selectedAlto}
+                        onSelectAlto={setSelectedAlto}
+                    />
 
                     {/* GALERÍA */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="flex-1 min-w-0">
                         {loading ? (
-                            <div style={gridStyle}>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                                 {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} style={{ aspectRatio: "1", borderRadius: "16px", background: "#e2e8f0" }} />
+                                    <div key={i} className="aspect-square rounded-2xl bg-slate-200 animate-pulse" />
                                 ))}
                             </div>
                         ) : images.length === 0 ? (
-                            <div style={{ textAlign: "center", padding: "80px 0", color: "#94a3b8" }}>No hay imágenes con esos filtros</div>
+                            <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2">
+                                <svg className="w-10 h-10 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p className="text-sm">No hay imágenes con esos filtros</p>
+                            </div>
                         ) : (
-                            <div style={gridStyle}>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                                 {images.map((img, index) => (
                                     <div
                                         key={img.id}
-                                        style={{ borderRadius: "16px", overflow: "hidden", background: "white", boxShadow: "0 1px 6px rgba(0,0,0,0.08)", transition: "transform 0.2s, box-shadow 0.2s", position: "relative" }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.14)"; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 1px 6px rgba(0,0,0,0.08)"; }}
+                                        className="relative rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
                                     >
-                                        {/* Botón editar — solo admin */}
+                                        {/* Botón editar */}
                                         {isAdmin && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setEditingImg(img); }}
-                                                style={{
-                                                    position: "absolute", top: "8px", right: "8px", zIndex: 10,
-                                                    background: "rgba(15,52,96,0.85)", backdropFilter: "blur(4px)",
-                                                    border: "none", borderRadius: "8px", color: "white",
-                                                    padding: "5px 10px", fontSize: "11px", fontWeight: 700,
-                                                    cursor: "pointer", letterSpacing: "0.05em",
-                                                }}
+                                                className="absolute top-2 right-2 z-10 bg-[#0f3460]/80 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-lg border-none cursor-pointer hover:bg-[#0f3460] transition-colors"
                                             >
                                                 ✏️ Editar
                                             </button>
                                         )}
-
-                                        <div onClick={() => setSelectedIndex(index)} style={{ cursor: "pointer" }}>
+                                        <div onClick={() => setSelectedIndex(index)} className="cursor-pointer">
                                             <img
                                                 src={img.url}
                                                 alt=""
                                                 loading="lazy"
-                                                style={{ width: "100%", aspectRatio: "1", objectFit: "cover", display: "block" }}
+                                                className="w-full aspect-square object-cover block"
                                             />
                                             {(img.alto || img.ancho) && (
-                                                <div style={{ padding: "6px 10px", fontSize: "11px", color: "#64748b", background: "white" }}>
+                                                <div className="px-2.5 py-1.5 text-[11px] text-slate-500 bg-white">
                                                     {img.alto ? `${img.alto} cm` : ""}
                                                     {img.alto && img.ancho ? " × " : ""}
                                                     {img.ancho ? `${img.ancho} cm` : ""}
@@ -392,33 +371,38 @@ export default function PublicGallery() {
             {/* MODAL VER IMAGEN */}
             {selectedIndex !== null && (
                 <div
+                    className="fixed inset-0 bg-black/95 flex items-center justify-center z-[9999]"
                     onClick={() => setSelectedIndex(null)}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
-                    style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
                 >
-                    <button onClick={() => setSelectedIndex(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "rgba(255,255,255,0.1)", border: "none", color: "white", width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer", fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-
-                    <span style={{ position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.5)", fontSize: "12px", letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
+                    <button onClick={() => setSelectedIndex(null)}
+                        className="absolute top-4 right-4 bg-white/10 hover:bg-white/25 border-none text-white w-10 h-10 rounded-full cursor-pointer text-lg flex items-center justify-center transition-colors">
+                        ✕
+                    </button>
+                    <span className="absolute top-5 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-widest whitespace-nowrap">
                         {selectedIndex + 1} / {images.length}
                         {images[selectedIndex]?.alto ? ` · ${images[selectedIndex].alto}${images[selectedIndex].ancho ? ` × ${images[selectedIndex].ancho}` : ""} cm` : ""}
                     </span>
-
-                    <button onClick={prevImage} style={{ position: "absolute", left: "12px", background: "rgba(255,255,255,0.1)", border: "none", color: "white", width: "44px", height: "44px", borderRadius: "50%", cursor: "pointer", fontSize: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-
+                    <button onClick={prevImage}
+                        className="absolute left-3 md:left-6 bg-white/10 hover:bg-white/25 border-none text-white w-11 h-11 rounded-full cursor-pointer text-2xl flex items-center justify-center transition-colors select-none">
+                        ‹
+                    </button>
                     <img
                         src={images[selectedIndex].url}
                         alt=""
                         onClick={(e) => e.stopPropagation()}
-                        style={{ maxHeight: "82vh", maxWidth: isMobile ? "86vw" : "75vw", objectFit: "contain", borderRadius: "12px", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
+                        className="max-h-[82vh] max-w-[80vw] md:max-w-[75vw] object-contain rounded-xl shadow-2xl"
                     />
-
-                    <button onClick={nextImage} style={{ position: "absolute", right: "12px", background: "rgba(255,255,255,0.1)", border: "none", color: "white", width: "44px", height: "44px", borderRadius: "50%", cursor: "pointer", fontSize: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
-
+                    <button onClick={nextImage}
+                        className="absolute right-3 md:right-6 bg-white/10 hover:bg-white/25 border-none text-white w-11 h-11 rounded-full cursor-pointer text-2xl flex items-center justify-center transition-colors select-none">
+                        ›
+                    </button>
                     {images.length <= 20 && (
-                        <div style={{ position: "absolute", bottom: "20px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px" }}>
+                        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5">
                             {images.map((_, i) => (
-                                <button key={i} onClick={(e) => { e.stopPropagation(); setSelectedIndex(i); }} style={{ width: i === selectedIndex ? "16px" : "6px", height: "6px", borderRadius: "999px", background: i === selectedIndex ? "white" : "rgba(255,255,255,0.35)", border: "none", cursor: "pointer", padding: 0, transition: "width 0.2s" }} />
+                                <button key={i} onClick={(e) => { e.stopPropagation(); setSelectedIndex(i); }}
+                                    className={`h-1.5 rounded-full border-none cursor-pointer p-0 transition-all ${i === selectedIndex ? "bg-white w-4" : "bg-white/40 w-1.5"}`} />
                             ))}
                         </div>
                     )}
@@ -431,10 +415,7 @@ export default function PublicGallery() {
                     img={editingImg}
                     categories={categories}
                     onClose={() => setEditingImg(null)}
-                    onSaved={() => {
-                        setEditingImg(null);
-                        fetchImages();
-                    }}
+                    onSaved={() => { setEditingImg(null); fetchImages(); }}
                 />
             )}
 
@@ -443,14 +424,12 @@ export default function PublicGallery() {
                 href="https://wa.me/593968712610?text=Hola%20quiero%20información%20sobre%20sus%20bordados"
                 target="_blank"
                 rel="noreferrer"
-                style={{ position: "fixed", bottom: "24px", right: "24px", background: "#22c55e", borderRadius: "50%", padding: "14px", boxShadow: "0 4px 16px rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, transition: "transform 0.2s" }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
-                onMouseLeave={(e) => e.currentTarget.style.transform = ""}
+                className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 p-3.5 rounded-full shadow-xl transition-all hover:scale-110 z-50 flex items-center justify-center"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 48 48">
-                    <path fill="#fff" d="M4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3z"/>
-                    <path fill="#40c351" d="M35.2,12.8c-3-3-6.9-4.6-11.2-4.6C15.3,8.2,8.2,15.3,8.2,24c0,3,0.8,5.9,2.4,8.4L11,33l-1.6,5.8l6-1.6l0.6,0.3c2.4,1.4,5.2,2.2,8,2.2h0c8.7,0,15.8-7.1,15.8-15.8C39.8,19.8,38.2,15.8,35.2,12.8z"/>
-                    <path fill="#fff" fillRule="evenodd" d="M19.3,16c-0.4-0.8-0.7-0.8-1.1-0.8c-0.3,0-0.6,0-0.9,0s-0.8,0.1-1.3,0.6c-0.4,0.5-1.7,1.6-1.7,4s1.7,4.6,1.9,4.9s3.3,5.3,8.1,7.2c4,1.6,4.8,1.3,5.7,1.2c0.9-0.1,2.8-1.1,3.2-2.3c0.4-1.1,0.4-2.1,0.3-2.3c-0.1-0.2-0.4-0.3-0.9-0.6s-2.8-1.4-3.2-1.5c-0.4-0.2-0.8-0.2-1.1,0.2c-0.3,0.5-1.2,1.5-1.5,1.9c-0.3,0.3-0.6,0.4-1,0.1c-0.5-0.2-2-0.7-3.8-2.4c-1.4-1.3-2.4-2.8-2.6-3.3c-0.3-0.5,0-0.7,0.2-1c0.2-0.2,0.5-0.6,0.7-0.8c0.2-0.3,0.3-0.5,0.5-0.8c0.2-0.3,0.1-0.6,0-0.8C20.6,19.3,19.7,17,19.3,16z" clipRule="evenodd"/>
+                    <path fill="#fff" d="M4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3z" />
+                    <path fill="#40c351" d="M35.2,12.8c-3-3-6.9-4.6-11.2-4.6C15.3,8.2,8.2,15.3,8.2,24c0,3,0.8,5.9,2.4,8.4L11,33l-1.6,5.8l6-1.6l0.6,0.3c2.4,1.4,5.2,2.2,8,2.2h0c8.7,0,15.8-7.1,15.8-15.8C39.8,19.8,38.2,15.8,35.2,12.8z" />
+                    <path fill="#fff" fillRule="evenodd" d="M19.3,16c-0.4-0.8-0.7-0.8-1.1-0.8c-0.3,0-0.6,0-0.9,0s-0.8,0.1-1.3,0.6c-0.4,0.5-1.7,1.6-1.7,4s1.7,4.6,1.9,4.9s3.3,5.3,8.1,7.2c4,1.6,4.8,1.3,5.7,1.2c0.9-0.1,2.8-1.1,3.2-2.3c0.4-1.1,0.4-2.1,0.3-2.3c-0.1-0.2-0.4-0.3-0.9-0.6s-2.8-1.4-3.2-1.5c-0.4-0.2-0.8-0.2-1.1,0.2c-0.3,0.5-1.2,1.5-1.5,1.9c-0.3,0.3-0.6,0.4-1,0.1c-0.5-0.2-2-0.7-3.8-2.4c-1.4-1.3-2.4-2.8-2.6-3.3c-0.3-0.5,0-0.7,0.2-1c0.2-0.2,0.5-0.6,0.7-0.8c0.2-0.3,0.3-0.5,0.5-0.8c0.2-0.3,0.1-0.6,0-0.8C20.6,19.3,19.7,17,19.3,16z" clipRule="evenodd" />
                 </svg>
             </a>
         </div>

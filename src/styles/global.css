@@ -1,6 +1,7 @@
 /* RESET */
 
 @import "tailwindcss";
+@source "../../src";
 
 
 html,
